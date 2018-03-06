@@ -312,7 +312,7 @@ static NSString *const timedMetadata = @"timedMetadata";
   });
 }
 
-- (AVPlayerItem*)playerItemForSource:(NSDictionary *)source
+/*- (AVPlayerItem*)playerItemForSource:(NSDictionary *)source
 {
   bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
   bool isAsset = [RCTConvert BOOL:[source objectForKey:@"isAsset"]];
@@ -334,6 +334,39 @@ static NSString *const timedMetadata = @"timedMetadata";
   }
 
   return [AVPlayerItem playerItemWithURL:url];
+}*/
+
+- (AVPlayerItem*)playerItemForSource:(NSDictionary *)source
+{
+    bool isNetwork = [RCTConvert BOOL:[source objectForKey:@"isNetwork"]];
+    //bool isAsset = [RCTConvert BOOL:[source objectForKey:@“isAsset”]];
+    NSString *uri = [source objectForKey:@"uri"];
+    NSString *type = [source objectForKey:@"type"];
+    
+    //  NSURL *url = (isNetwork || isAsset) ?
+    //    [NSURL URLWithString:uri] :
+    //    [[NSURL alloc] initFileURLWithPath:[[NSBundle mainBundle] pathForResource:uri ofType:type]];
+    
+    NSURL *url;
+    if (isNetwork) {
+        url = [NSURL URLWithString:uri];
+    } else {
+        NSString *pathAndFileName = [[NSBundle mainBundle] pathForResource:uri ofType:type];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:pathAndFileName]) {
+            url = [[NSURL alloc] initFileURLWithPath:pathAndFileName];
+        } else {
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+            NSString *cachePath = [paths objectAtIndex:0];
+            NSString *fileAndExtension = [NSString stringWithFormat:@"%@",uri];
+            url = [NSURL fileURLWithPath:[cachePath stringByAppendingPathComponent:fileAndExtension]];
+        }
+    }
+    if (!isNetwork) {
+        AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
+        return [AVPlayerItem playerItemWithAsset:asset];
+    }
+    
+    return [AVPlayerItem playerItemWithURL:url];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
