@@ -23,6 +23,7 @@ import com.yqritc.scalablevideoview.ScalableVideoView;
 import com.yqritc.scalablevideoview.ScaleManager;
 import com.yqritc.scalablevideoview.Size;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
