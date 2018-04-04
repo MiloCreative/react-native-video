@@ -205,6 +205,106 @@ public class ReactVideoView extends ScalableVideoView implements MediaPlayer.OnP
         setSrc(uriString,type,isNetwork,isAsset,0,0);
     }
 
+    // public void setSrc(final String uriString, final String type, final boolean isNetwork, final boolean isAsset, final int expansionMainVersion, final int expansionPatchVersion) {
+    //
+    //     mSrcUriString = uriString;
+    //     mSrcType = type;
+    //     mSrcIsNetwork = isNetwork;
+    //     mSrcIsAsset = isAsset;
+    //     mMainVer = expansionMainVersion;
+    //     mPatchVer = expansionPatchVersion;
+    //
+    //
+    //     mMediaPlayerValid = false;
+    //     mVideoDuration = 0;
+    //     mVideoBufferedDuration = 0;
+    //
+    //     initializeMediaPlayerIfNeeded();
+    //     mMediaPlayer.reset();
+    //
+    //     try {
+    //         if (isNetwork) {
+    //             // Use the shared CookieManager to access the cookies
+    //             // set by WebViews inside the same app
+    //             CookieManager cookieManager = CookieManager.getInstance();
+    //
+    //             Uri parsedUrl = Uri.parse(uriString);
+    //             Uri.Builder builtUrl = parsedUrl.buildUpon();
+    //
+    //             String cookie = cookieManager.getCookie(builtUrl.build().toString());
+    //
+    //             Map<String, String> headers = new HashMap<String, String>();
+    //
+    //             if (cookie != null) {
+    //                 headers.put("Cookie", cookie);
+    //             }
+    //
+    //             setDataSource(uriString);
+    //         } else if (isAsset) {
+    //             if (uriString.startsWith("content://")) {
+    //                 Uri parsedUrl = Uri.parse(uriString);
+    //                 setDataSource(mThemedReactContext, parsedUrl);
+    //             } else {
+    //                 setDataSource(uriString);
+    //             }
+    //         } else {
+    //             ZipResourceFile expansionFile= null;
+    //             AssetFileDescriptor fd= null;
+    //             if(mMainVer>0) {
+    //                 try {
+    //                     expansionFile = APKExpansionSupport.getAPKExpansionZipFile(mThemedReactContext, mMainVer, mPatchVer);
+    //                     fd = expansionFile.getAssetFileDescriptor(uriString.replace(".mp4","") + ".mp4");
+    //                 } catch (IOException e) {
+    //                     e.printStackTrace();
+    //                 } catch (NullPointerException e) {
+    //                     e.printStackTrace();
+    //                 }
+    //             }
+    //             if(fd==null) {
+    //                 int identifier = mThemedReactContext.getResources().getIdentifier(
+    //                     uriString,
+    //                     "drawable",
+    //                     mThemedReactContext.getPackageName()
+    //                 );
+    //                 if (identifier == 0) {
+    //                     identifier = mThemedReactContext.getResources().getIdentifier(
+    //                         uriString,
+    //                         "raw",
+    //                         mThemedReactContext.getPackageName()
+    //                     );
+    //                 }
+    //                 setRawData(identifier);
+    //             }
+    //             else {
+    //                 setDataSource(fd.getFileDescriptor(), fd.getStartOffset(),fd.getLength());
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         return;
+    //     }
+    //
+    //     WritableMap src = Arguments.createMap();
+    //     src.putString(ReactVideoViewManager.PROP_SRC_URI, uriString);
+    //     src.putString(ReactVideoViewManager.PROP_SRC_TYPE, type);
+    //     src.putBoolean(ReactVideoViewManager.PROP_SRC_IS_NETWORK, isNetwork);
+    //     if(mMainVer>0) {
+    //         src.putInt(ReactVideoViewManager.PROP_SRC_MAINVER, mMainVer);
+    //         if(mPatchVer>0) {
+    //             src.putInt(ReactVideoViewManager.PROP_SRC_PATCHVER, mPatchVer);
+    //         }
+    //     }
+    //     WritableMap event = Arguments.createMap();
+    //     event.putMap(ReactVideoViewManager.PROP_SRC, src);
+    //     mEventEmitter.receiveEvent(getId(), Events.EVENT_LOAD_START.toString(), event);
+    //
+    //     try {
+    //       prepareAsync(this);
+    //     } catch (Exception e) {
+    //       e.printStackTrace();
+    //     }
+    // }
+
     public void setSrc(final String uriString, final String type, final boolean isNetwork, final boolean isAsset, final int expansionMainVersion, final int expansionPatchVersion) {
 
         mSrcUriString = uriString;
@@ -240,43 +340,44 @@ public class ReactVideoView extends ScalableVideoView implements MediaPlayer.OnP
                 }
 
                 setDataSource(uriString);
-            } else if (isAsset) {
-                if (uriString.startsWith("content://")) {
-                    Uri parsedUrl = Uri.parse(uriString);
-                    setDataSource(mThemedReactContext, parsedUrl);
-                } else {
-                    setDataSource(uriString);
-                }
             } else {
-                ZipResourceFile expansionFile= null;
-                AssetFileDescriptor fd= null;
-                if(mMainVer>0) {
-                    try {
-                        expansionFile = APKExpansionSupport.getAPKExpansionZipFile(mThemedReactContext, mMainVer, mPatchVer);
-                        fd = expansionFile.getAssetFileDescriptor(uriString.replace(".mp4","") + ".mp4");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
+                File file = new File(mThemedReactContext.getFilesDir(),uriString);
+                File fileCache = new File(mThemedReactContext.getCacheDir(), uriString);
+                if(file.exists()){
+                    setDataSource(file.getAbsolutePath());
+                }else if(fileCache.exists()){
+                    setDataSource(fileCache.getAbsolutePath());
+                }else {
+                    ZipResourceFile expansionFile= null;
+                    AssetFileDescriptor fd= null;
+                    if(mMainVer>0) {
+                        try {
+                            expansionFile = APKExpansionSupport.getAPKExpansionZipFile(mThemedReactContext, mMainVer, mPatchVer);
+                            fd = expansionFile.getAssetFileDescriptor(uriString.replace(".mp4","") + ".mp4");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-                if(fd==null) {
-                    int identifier = mThemedReactContext.getResources().getIdentifier(
-                        uriString,
-                        "drawable",
-                        mThemedReactContext.getPackageName()
-                    );
-                    if (identifier == 0) {
-                        identifier = mThemedReactContext.getResources().getIdentifier(
-                            uriString,
-                            "raw",
-                            mThemedReactContext.getPackageName()
+                    if(fd==null) {
+                        int identifier = mThemedReactContext.getResources().getIdentifier(
+                                uriString,
+                                "drawable",
+                                mThemedReactContext.getPackageName()
                         );
+                        if (identifier == 0) {
+                            identifier = mThemedReactContext.getResources().getIdentifier(
+                                    uriString,
+                                    "raw",
+                                    mThemedReactContext.getPackageName()
+                            );
+                        }
+                        setRawData(identifier);
                     }
-                    setRawData(identifier);
-                }
-                else {
-                    setDataSource(fd.getFileDescriptor(), fd.getStartOffset(),fd.getLength());
+                    else {
+                        setDataSource(fd.getFileDescriptor(), fd.getStartOffset(),fd.getLength());
+                    }
                 }
             }
         } catch (Exception e) {
