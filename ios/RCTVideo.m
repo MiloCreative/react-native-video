@@ -355,7 +355,7 @@ static NSString *const timedMetadata = @"timedMetadata";
         if ([[NSFileManager defaultManager] fileExistsAtPath:pathAndFileName]) {
             url = [[NSURL alloc] initFileURLWithPath:pathAndFileName];
         } else {
-            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
             NSString *cachePath = [paths objectAtIndex:0];
             NSString *fileAndExtension = [NSString stringWithFormat:@"%@",uri];
             url = [NSURL fileURLWithPath:[cachePath stringByAppendingPathComponent:fileAndExtension]];
